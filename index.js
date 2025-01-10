@@ -16,18 +16,18 @@ app.use(express.static("public"));
 
 // import routes file
 
+// Login
 const loginRouter = require("./routes/login");
 app.use("/portalnilai", loginRouter);
 
+// redirect awalan
 app.get("/", (req, res) => {
-  res.redirect("/portalnilai");
+  res.redirect("/portalnilai/");
 });
 
 const mahasiswaRouter = require("./routes/mahasiswa");
 app.use("/portalnilai/mahasiswa", mahasiswaRouter);
 
-// const signupRouter = require("./routes/signup");
-// app.use("/portalnilai/signup", signupRouter);
 
 app.listen(port, () => {
     console.log(`Website listening at http://localhost:${port}`);

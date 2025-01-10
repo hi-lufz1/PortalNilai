@@ -10,13 +10,17 @@ router.get("/", (req, res) => {
 router.post("/", (req, res) => {
   const{ username, password } = req.body;
 
+  if (!username || !password){
+    return res.status(400).send(" Masukkan Username dan Password yang benar.");
+  }
+
   const query = "SELECT * FROM user WHERE username = ?";
   connection.query(query, [username], async (err, result) => {
       if(err){
         return res.status(500).send("Database Error");
       }
 
-      if (results.length === 0) {
+      if (result.length === 0) {
         return res.render("login", {
           title: "Login",
           error: "Username Tidak Ditemukan"
@@ -26,8 +30,7 @@ router.post("/", (req, res) => {
       const user = result[0];
 
       // Cek Password
-      const isPasswordMatch = await bcrypt.compare[password, user.password];
-      if(!isPasswordMatch) {
+      if(password !== user.password) {
         return res.render("login",{
           title: "Login",
           error: "Password Salah",
@@ -35,16 +38,8 @@ router.post("/", (req, res) => {
       }
 
       // Redirect berdasarkan Role
-      if (user.role === 1 && 2){
-        return res.redirect("/dosen");
-      }else if (user.role === 3){
-        return res.redirect("/mahasiswa");
-      }else {
-        return res.render("login",{
-          title: "Login",
-          error: "LOGIN TIDAK VALID"
-        })
-      }
+      let userPath = user.role === 3 ? "mahasiswa" : "dosen";
+    return res.redirect(`/portalnilai/${userPath}`);
     
     })
   });
