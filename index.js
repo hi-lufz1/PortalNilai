@@ -28,6 +28,11 @@ app.get("/", (req, res) => {
 const mahasiswaRouter = require("./routes/mahasiswa");
 app.use("/portalnilai/mahasiswa", mahasiswaRouter);
 
+const dosenRouter = require("./routes/dosen");
+app.use("/portalnilai/dosen", dosenRouter);
+
+const nilaiRouter = require("./routes/nilai");
+app.use("/portalnilai/dosen/nilai", nilaiRouter);
 
 app.listen(port, () => {
     console.log(`Website listening at http://localhost:${port}`);

@@ -1,27 +1,19 @@
+// routes/nilai.js
 const express = require("express");
 const router = express.Router();
 const connection = require("../config/database");
 
-// Halaman dashboard dosen
+// Halaman dashboard dosen untuk mengelola nilai
 router.get("/", (req, res) => {
-    if (!req.session.user) {
-      return res.redirect("/login"); // Redirect jika user belum login
+  connection.query("SELECT * FROM matakuliah", (err, matkulRows) => {
+    if (err) {
+      return res.status(500).send("Error fetching matakuliah");
     }
-  
-    const user = req.session.user; // Ambil user dari session
-    connection.query("SELECT * FROM matakuliah", (err, matkulRows) => {
-      if (err) {
-        return res.status(500).send("Error fetching matakuliah");
-      }
-      res.render("dosen", {
-        title: "Dashboard Dosen",
-        matkulList: matkulRows,
-        user: user, // Kirim user ke ejs
-      });
-    });
+    res.render("dosen", { title: "Dashboard Dosen", matkulList: matkulRows });
   });
-  
+});
 
+// Tampilkan daftar mahasiswa berdasarkan mata kuliah yang dipilih
 router.post("/nilai", (req, res) => {
   const { idMk } = req.body;
 
@@ -36,7 +28,7 @@ router.post("/nilai", (req, res) => {
         if (err) {
           return res.status(500).send("Error fetching mahasiswa");
         }
-        res.render("nilai", {
+        res.render("dosen_nilai", {
           title: "Kelola Nilai Mahasiswa",
           nilaiList: nilaiRows,
           mahasiswaList: mahasiswaRows,
@@ -47,7 +39,7 @@ router.post("/nilai", (req, res) => {
   );
 });
 
-// Tambah + update 
+// Tambah atau update nilai mahasiswa
 router.post("/nilai/tambah", (req, res) => {
   const { idMk, idMahasiswa, nilai } = req.body;
   const predikat = nilai >= 80 ? "A" : nilai >= 70 ? "B" : nilai >= 60 ? "C" : "D";
@@ -65,7 +57,7 @@ router.post("/nilai/tambah", (req, res) => {
   });
 });
 
-// Hapus 
+// Hapus nilai mahasiswa
 router.post("/nilai/hapus", (req, res) => {
   const { idMk, idMahasiswa } = req.body;
 

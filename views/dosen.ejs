@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Dashboard Dosen</h1>
+        <nav>
+            <ul>
+                <li><a href="/portalnilai/dosen">Beranda</a></li>
+                <li><a href="/portalnilai" class="btn-logout">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <h2>Selamat datang, <%= user ? user.username : "Dosen" %>!</h2>
+        <p>Silakan pilih mata kuliah untuk mengelola nilai mahasiswa.</p>
+
+        <!-- Tabel Daftar Mata Kuliah -->
+        <table border="1" cellpadding="10" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Mata Kuliah</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% if (matkulList.length > 0) { %>
+                    <% matkulList.forEach((matkul, index) => { %>
+                        <tr>
+                            <td><%= index + 1 %></td>
+                            <td><%= matkul.namaMk %></td>
+                            <td>
+                                <form action="/portalnilai/dosen/nilai" method="POST" style="display: inline;">
+                                    <input type="hidden" name="idMk" value="<%= matkul.idMk %>">
+                                    <button type="submit">Kelola Nilai</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                        <td colspan="3">Belum ada mata kuliah yang diampu.</td>
+                    </tr>
+                <% } %>
+            </tbody>
+        </table>
+    </main>
+
+    <footer>
+        <p>&copy; <%= new Date().getFullYear() %> Portal Nilai</p>
+    </footer>
+</body>
+</html>

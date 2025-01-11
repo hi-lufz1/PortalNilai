@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Nilai Mahasiswa</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Kelola Nilai Mahasiswa</h1>
+        <nav>
+            <a href="/portalnilai/dosen">Dashboard Dosen</a>
+            <a href="/logout">Logout</a>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <h2>Pilih Mata Kuliah</h2>
+            <form action="/portalnilai/dosen/nilai" method="POST">
+                <label for="idMk">Mata Kuliah:</label>
+                <select name="idMk" id="idMk" required>
+                    <% matkulList.forEach(matkul => { %>
+                        <option value="<%= matkul.idMk %>" <%= idMk == matkul.idMk ? 'selected' : '' %>>
+                            <%= matkul.namaMk %>
+                        </option>
+                    <% }); %>
+                </select>
+                <button type="submit">Pilih</button>
+            </form>
+        </section>
+
+        <% if (nilaiList && nilaiList.length > 0) { %>
+        <section>
+            <h2>Daftar Nilai Mahasiswa</h2>
+            <table border="1">
+                <thead>
+                    <tr>
+                        <th>Nama Mahasiswa</th>
+                        <th>Nilai</th>
+                        <th>Predikat</th>
+                        <th>Keterangan</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% nilaiList.forEach(nilai => { %>
+                        <tr>
+                            <td><%= mahasiswaList.find(mhs => mhs.idMahasiswa === nilai.idMahasiswa)?.nama || 'Unknown' %></td>
+                            <td><%= nilai.nilai %></td>
+                            <td><%= nilai.predikat %></td>
+                            <td><%= nilai.keterangan %></td>
+                            <td>
+                                <form action="/portalnilai/dosen/nilai/hapus" method="POST" style="display:inline;">
+                                    <input type="hidden" name="idMk" value="<%= nilai.idMk %>">
+                                    <input type="hidden" name="idMahasiswa" value="<%= nilai.idMahasiswa %>">
+                                    <button type="submit" onclick="return confirm('Apakah Anda yakin ingin menghapus nilai ini?');">Hapus</button>
+                                </form>
+                            </td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </section>
+        <% } else if (idMk) { %>
+        <section>
+            <p>Tidak ada nilai untuk mata kuliah ini.</p>
+        </section>
+        <% } %>
+
+        <section>
+            <h2>Tambah/Ubah Nilai Mahasiswa</h2>
+            <form action="/portalnilai/dosen/nilai/tambah" method="POST">
+                <input type="hidden" name="idMk" value="<%= idMk %>">
+                <label for="idMahasiswa">Mahasiswa:</label>
+                <select name="idMahasiswa" id="idMahasiswa" required>
+                    <% mahasiswaList.forEach(mhs => { %>
+                        <option value="<%= mhs.idMahasiswa %>"><%= mhs.nama %></option>
+                    <% }); %>
+                </select>
+                <label for="nilai">Nilai:</label>
+                <input type="number" name="nilai" id="nilai" min="0" max="100" required>
+                <button type="submit">Simpan</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Portal Nilai</p>
+    </footer>
+</body>
+</html>
