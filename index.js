@@ -28,7 +28,8 @@ app.use(express.static("public"));
 // Import routes
 const loginRouter = require("./routes/login");
 const mahasiswaRouter = require("./routes/mahasiswa");
-const dosenRouter = require("./routes/dosen");
+const dosenRoutes = require("./routes/dosen");
+app.use("/laporan", dosenRoutes);
 
 // Routing
 app.use("/portalnilai", loginRouter);
@@ -37,6 +38,7 @@ app.get("/", (req, res) => {
 });
 app.use("/portalnilai/mahasiswa", mahasiswaRouter);
 app.use("/portalnilai/dosen", dosenRouter);
+
 
 app.listen(port, () => {
   console.log(`Website listening at http://localhost:${port}`);
