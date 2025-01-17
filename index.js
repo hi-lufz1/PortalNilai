@@ -23,13 +23,17 @@ app.use(cors());
 app.set("view engine", "ejs");
 app.set("views", "./views");
 
+app.use(express.static("assets")); 
+ 
+// import routes file 
+app.use('/assets', express.static('assets'));
+
 app.use(express.static("public"));
 
 // Import routes
 const loginRouter = require("./routes/login");
 const mahasiswaRouter = require("./routes/mahasiswa");
-const dosenRoutes = require("./routes/dosen");
-app.use("/laporan", dosenRoutes);
+const dosenRouter = require("./routes/dosen");
 
 // Routing
 app.use("/portalnilai", loginRouter);

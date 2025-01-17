@@ -71,60 +71,55 @@ router.post("/nilai/hapus", isAuthenticated, (req, res) => {
   );
 });
 
-router.get("/laporan/nilai", (req, res) => {
-  console.log("Rute laporan/nilai dipanggil");
-  console.log("Parameter idMk:", req.query.idMk);
-  const idMk = req.query.idMk;
+// Route untuk menampilkan laporan berdasarkan mata kuliah
+router.get("/laporan", (req, res) => {
+  const { idMk } = req.query;
 
-  // Query untuk mendapatkan daftar mata kuliah
+  // Query untuk mengambil daftar mata kuliah
   connection.query("SELECT idMk, namaMk FROM matakuliah", (err, mataKuliahRows) => {
     if (err) {
       console.error("Error fetching mata kuliah:", err);
       return res.status(500).send("Error fetching mata kuliah");
     }
 
-    if (!idMk) {
-      // Jika belum memilih mata kuliah, kirim halaman tanpa data nilai
-      return res.render("laporan", {
-        matakuliahList: mataKuliahRows,
-        laporanList: null,
-        namaMk: null,
-      });
-    }
-
-    // Query untuk mendapatkan data nilai mata kuliah
-    connection.query(
-      `SELECT 
-          n.idMk, 
-          n.idMahasiswa, 
-          n.nilai, 
-          n.predikat, 
-          n.keterangan, 
-          m.namaMk, 
-          mh.nama AS namaMahasiswa
-       FROM nilai n
-       JOIN matakuliah m ON n.idMk = m.idMk
-       JOIN mahasiswa mh ON n.idMahasiswa = mh.idMahasiswa
-       WHERE n.idMk = ?`,
-      [idMk],
-      (err, laporanRows) => {
-        if (err) {
-          console.error("Error fetching laporan:", err);
-          return res.status(500).send("Error fetching laporan");
+    if (idMk) {
+      connection.query(
+        `SELECT 
+            n.idMk, 
+            n.idMahasiswa, 
+            n.nilai, 
+            n.predikat, 
+            n.keterangan, 
+            m.namaMk, 
+            mh.nama AS namaMahasiswa
+         FROM nilai n
+         JOIN matakuliah m ON n.idMk = m.idMk
+         JOIN mahasiswa mh ON n.idMahasiswa = mh.idMahasiswa
+         WHERE n.idMk = ?`,
+        [idMk],
+        (err, laporanRows) => {
+          if (err) {
+            console.error("Error fetching laporan:", err);
+            return res.status(500).send("Error fetching laporan");
+          }
+    
+          res.render("laporan", {
+            mataKuliahList: mataKuliahRows,  // Daftar mata kuliah
+            laporanList: laporanRows || [], // Default ke array kosong jika tidak ada data
+          });
         }
-
-        const namaMk = laporanRows.length > 0 ? laporanRows[0].namaMk : null;
-
-        res.render("laporan", {
-          matakuliahList: mataKuliahRows,
-          laporanList: laporanRows,
-          namaMk,
-        });
-      }
-    );
+      );
+    } else {
+      // Jika tidak ada idMk, hanya tampilkan daftar mata kuliah
+      res.render("laporan", { 
+        mataKuliahList: mataKuliahRows, 
+        laporanList: [] // Default ke array kosong
+      });
+    }    
   });
 });
 
+// Route untuk mengunduh laporan
 router.get("/laporan/unduh", (req, res) => {
   const { idMk } = req.query;
 
@@ -148,6 +143,11 @@ router.get("/laporan/unduh", (req, res) => {
         return res.status(500).send("Error fetching laporan");
       }
 
+      if (!laporanRows.length) {
+        return res.status(404).send("Tidak ada data untuk mata kuliah ini.");
+      }
+
+      // Render HTML ke PDF
       res.render(
         "printLaporan",
         { title: `Laporan Nilai Mata Kuliah ${idMk}`, laporanList: laporanRows },
@@ -158,22 +158,39 @@ router.get("/laporan/unduh", (req, res) => {
           }
 
           try {
-            const browser = await puppeteer.launch({ headless: true });
+            const browser = await puppeteer.launch({
+              headless: false,
+              args: ["--no-sandbox", "--disable-setuid-sandbox"],
+            });
             const page = await browser.newPage();
-            await page.setContent(htmlContent);
+
+            // Menunggu halaman selesai dimuat
+            await page.setContent(htmlContent, { waitUntil: "domcontentloaded" });
+
+            // Ambil screenshot untuk verifikasi
+            await page.screenshot({ path: "screenshot.png" });
+            console.log("Screenshot saved for debugging.");
+
+            // Generate PDF
             const pdfBuffer = await page.pdf({
               format: "A4",
               printBackground: true,
+              margin: { top: "20px", bottom: "20px", left: "10px", right: "10px" },
             });
             await browser.close();
 
+            const fs = require('fs');
+fs.writeFileSync('laporan_output.pdf', pdfBuffer);  // Menyimpan PDF ke disk untuk pemeriksaan
+console.log('PDF saved.');
+
+            // Kirimkan PDF ke pengguna
             res.set({
               "Content-Type": "application/pdf",
               "Content-Disposition": `attachment; filename="laporan_${idMk}.pdf"`,
             });
             res.send(pdfBuffer);
-          } catch (err) {
-            console.error("Error generating PDF:", err);
+          } catch (pdfErr) {
+            console.error("Error generating PDF:", pdfErr);
             res.status(500).send("Error generating PDF");
           }
         }
@@ -181,6 +198,8 @@ router.get("/laporan/unduh", (req, res) => {
     }
   );
 });
+
+
 
 
 module.exports = router
