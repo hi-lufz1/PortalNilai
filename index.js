@@ -1,4 +1,5 @@
 const express = require("express");
+const session = require("express-session");
 const app = express();
 const port = 3000;
 
@@ -8,6 +9,15 @@ app.use(cors());
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+app.use(
+    session({
+      secret: "your-secret-key", // Use a strong secret key
+      resave: false,
+      saveUninitialized: true,
+      cookie: { secure: false }, // Set to true if using HTTPS
+    })
+  );
 
 app.set("view engine", "ejs");
 app.set("views", "./views");
